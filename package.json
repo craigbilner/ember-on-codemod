@@ -4,7 +4,8 @@
   "description": "Replace use of Ember.on with lifecycle event (ignoring init observer)",
   "main": "transform.js",
   "scripts": {
-    "test": "jest --bail"
+    "test": "npm run lint && jest --bail",
+    "lint": "eslint transform.js"
   },
   "repository": {
     "type": "git",
@@ -18,6 +19,11 @@
   },
   "homepage": "https://github.com/craigbilner/ember-on-codemod#readme",
   "devDependencies": {
+    "eslint": "3.14.1",
+    "eslint-config-airbnb": "14.0.0",
+    "eslint-plugin-import": "2.2.0",
+    "eslint-plugin-jsx-a11y": "3.0.2",
+    "eslint-plugin-react": "6.9.0",
     "jest": "18.1.0",
     "jscodeshift": "0.3.30"
   }
