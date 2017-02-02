@@ -1,0 +1,24 @@
+{
+  "name": "ember-on-codemod",
+  "version": "0.0.1",
+  "description": "Replace use of Ember.on with lifecycle event (ignoring init observer)",
+  "main": "transform.js",
+  "scripts": {
+    "test": "jest --bail"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/craigbilner/ember-on-codemod.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/craigbilner/ember-on-codemod/issues"
+  },
+  "homepage": "https://github.com/craigbilner/ember-on-codemod#readme",
+  "devDependencies": {
+    "jest": "18.1.0",
+    "jscodeshift": "0.3.30"
+  }
+}
