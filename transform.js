@@ -26,11 +26,9 @@ const makeArgsSuperCall = j =>
     ),
   );
 
-const transform = (file, api) => {
-  const j = api.jscodeshift;
-  const root = j(file.source);
-
-  const emberOns = root.find(j.Property, {
+const isEmberOn = j => [
+  j.Property,
+  {
     value: {
       type: 'CallExpression',
       callee: {
@@ -45,18 +43,46 @@ const transform = (file, api) => {
         },
       },
     },
-  }).filter((path) => {
-    const [, func] = path.node.value.arguments;
+  },
+];
 
-    if (!func.callee) {
-      return true;
-    }
+const notObserver = (path) => {
+  const [, func] = path.node.value.arguments;
 
-    const isEmberCall = func.callee.object.name === 'Ember';
-    const isObserver = func.callee.property.name === 'observer';
+  if (!func.callee) {
+    return true;
+  }
 
-    return !(isEmberCall && isObserver);
-  });
+  const isEmberCall = func.callee.object.name === 'Ember';
+  const isObserver = func.callee.property.name === 'observer';
+
+  return !(isEmberCall && isObserver);
+};
+
+const superCalls = (j, contextNode) => j(contextNode).find(j.ExpressionStatement, {
+  expression: {
+    type: 'CallExpression',
+    callee: {
+      type: 'MemberExpression',
+      object: {
+        type: 'ThisExpression',
+      },
+      property: {
+        type: 'Identifier',
+        name: '_super',
+      },
+    },
+  },
+});
+
+const transform = (file, api) => {
+  const j = api.jscodeshift;
+  const root = j(file.source);
+
+  const emberOns =
+    root
+      .find(...isEmberOn(j))
+      .filter(notObserver); // ignore: Ember.on('init', ... observer stuff ...
 
   emberOns.replaceWith((path) => {
     const [{ value: name }] = path.node.value.arguments;
@@ -68,13 +94,18 @@ const transform = (file, api) => {
     const [, func] = path.node.value.arguments;
 
     if (func.params.length) {
+      // although DRA params have been deprecated, leave them be until refactored
       return path.node;
     }
 
     const newParam = [makeRestArg(j, 'args')];
     const funcBlock = func.body;
-    funcBlock.body.unshift(makeArgsSuperCall(j));
-    const newFunc = j.functionExpression(func.id, newParam, funcBlock);
+    const hasSuperCall = superCalls(j, funcBlock).size() > 0;
+
+    if (!hasSuperCall) {
+      funcBlock.body.unshift(makeArgsSuperCall(j));
+    }
+    const newFunc = j.functionExpression(func.id, hasSuperCall ? [] : newParam, funcBlock);
     const lifecycle = j.identifier(name);
     const lifecycleMethod = j.property('init', lifecycle, newFunc);
 
