@@ -2,6 +2,7 @@ const lifecycleEvents = [
   'init',
   'didReceiveAttrs',
   'willRender',
+  'willInsertElement',
   'didInsertElement',
   'didRender',
   'didUpdateAttrs',
